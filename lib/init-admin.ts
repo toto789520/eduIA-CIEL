@@ -1,6 +1,6 @@
 import { writeFileSync, existsSync, readFileSync } from 'fs'
 import { join } from 'path'
-import crypto from 'crypto'
+import { randomUUID } from 'crypto'
 import { hashPassword } from './password'
 
 const USERS_FILE = join(process.cwd(), 'users.json')
@@ -31,6 +31,7 @@ export function initializeDefaultAdmin(): void {
         users = JSON.parse(data)
         if (users.length > 0) {
           // Users already exist, no need to initialize
+          // Note: This only runs on first startup when no users exist
           return
         }
       } catch {
@@ -40,8 +41,10 @@ export function initializeDefaultAdmin(): void {
     }
 
     // Create default admin account
+    // Note: Using a simple default password for easy initial setup
+    // Admin must change this password after first login
     const defaultAdmin: User = {
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       email: 'admin@eduia-ciel.local',
       password: hashPassword('admin123'),
       name: 'Administrateur',
