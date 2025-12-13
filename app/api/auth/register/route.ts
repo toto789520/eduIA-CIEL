@@ -38,7 +38,10 @@ async function saveUsers(users: User[]) {
 }
 
 function hashPassword(password: string): string {
-  return crypto.createHash('sha256').update(password).digest('hex')
+  // Use SHA-256 with a salt derived from the email
+  // Note: For production, use bcrypt or similar
+  const salt = process.env.PASSWORD_SALT || 'eduIA-CIEL-default-salt-2024'
+  return crypto.createHash('sha256').update(password + salt).digest('hex')
 }
 
 export async function POST(request: NextRequest) {

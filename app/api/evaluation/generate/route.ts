@@ -123,7 +123,12 @@ export async function POST(request: NextRequest) {
 
     // Prepare code context
     const codeContent = codeDocuments
-      .map((doc: any) => `// File: ${doc.name}\n${doc.content}`)
+      .map((doc: any) => {
+        // Sanitize content by removing potential command injection patterns
+        const sanitizedContent = doc.content
+          .replace(/[`$]/g, '') // Remove backticks and dollar signs that could be used in command injection
+        return `// File: ${doc.name}\n${sanitizedContent}`
+      })
       .join('\n\n')
       .substring(0, 6000) // Limit context size
 

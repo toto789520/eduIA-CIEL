@@ -209,8 +209,13 @@ export default function EvaluationPage() {
     // Submit score to leaderboard if user is logged in
     const submitScore = async () => {
       try {
+        // Determine category based on exercise types
+        const hasTerminal = session.exercises.some(ex => ex.type === 'terminal')
+        const hasCode = session.exercises.some(ex => ex.type === 'code')
+        const category = hasTerminal && hasCode ? 'Général' : hasTerminal ? 'Systèmes Linux' : 'Programmation'
+        
         await axios.post('/api/leaderboard', {
-          category: 'Général',
+          category,
           score: session.score
         })
       } catch (error) {

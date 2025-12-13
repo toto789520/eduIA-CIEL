@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const GITHUB_REPO = 'toto789520/eduIA-CIEL'
+const GITHUB_REPO = process.env.GITHUB_REPO || 'toto789520/eduIA-CIEL'
 const CURRENT_VERSION = '1.0.0' // This should match package.json version
 
 interface GitHubRelease {
