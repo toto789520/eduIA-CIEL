@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const codeValidations: { [key: string]: { validation: RegExp; message: string } } = {
   'code-1': {
-    validation: /echo.*hello.*bts.*ciel.*date/is,
+    validation: /echo\s+["']?hello\s+bts\s+ciel["']?\s+.*date/is,
     message: 'Votre script doit contenir echo "Hello BTS CIEL" et la commande date'
   },
   'code-2': {
-    validation: /def\s+calculate_average.*sum.*len/is,
+    validation: /def\s+calculate_average\s*\(.*\)\s*:\s*.*sum\s*\(.*\).*len\s*\(.*\)/is,
     message: 'Votre fonction doit calculer la somme et diviser par la longueur de la liste'
   }
 }

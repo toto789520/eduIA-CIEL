@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { RefreshCw, CheckCircle, XCircle, BookOpen } from 'lucide-react'
 import axios from 'axios'
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, readFile, unlink, readdir } from 'fs/promises'
+import { writeFile, readFile, unlink } from 'fs/promises'
 import { existsSync, mkdirSync } from 'fs'
 import path from 'path'
 import crypto from 'crypto'
@@ -46,6 +46,10 @@ export async function GET(request: NextRequest) {
   }
 }
 
+const ALLOWED_MIME_TYPES = ['text/plain', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+const ALLOWED_EXTENSIONS = ['.txt', '.pdf', '.doc', '.docx']
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
@@ -59,8 +63,30 @@ export async function POST(request: NextRequest) {
     const newDocuments: Document[] = []
 
     for (const file of files) {
+      // Validate file size
+      if (file.size > MAX_FILE_SIZE) {
+        return NextResponse.json({ error: 'File size exceeds limit' }, { status: 400 })
+      }
+
+      // Validate file extension
+      const fileExt = path.extname(file.name).toLowerCase()
+      if (!ALLOWED_EXTENSIONS.includes(fileExt)) {
+        return NextResponse.json({ error: 'Invalid file type' }, { status: 400 })
+      }
+
+      // Validate MIME type
+      if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+        return NextResponse.json({ error: 'Invalid file type' }, { status: 400 })
+      }
+
       const buffer = Buffer.from(await file.arrayBuffer())
-      const filename = crypto.randomUUID() + path.extname(file.name)
+      
+      // Validate file content by checking magic numbers
+      if (fileExt === '.pdf' && !buffer.slice(0, 4).equals(Buffer.from([0x25, 0x50, 0x44, 0x46]))) {
+        return NextResponse.json({ error: 'Invalid file content' }, { status: 400 })
+      }
+      
+      const filename = crypto.randomUUID() + fileExt
       const filepath = path.join(UPLOAD_DIR, filename)
       
       await writeFile(filepath, buffer)
@@ -99,17 +125,28 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get('id')
 
     if (!id) {
-      return NextResponse.json({ error: 'Document ID required' }, { status: 400 })
+      return NextResponse.json({ error: 'Unable to process request' }, { status: 400 })
     }
 
     const documents = await loadDocuments()
     const docIndex = documents.findIndex(d => d.id === id)
 
     if (docIndex === -1) {
-      return NextResponse.json({ error: 'Document not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Unable to process request' }, { status: 404 })
     }
 
     const doc = documents[docIndex]
+    
+    // Validate filename to prevent path traversal
+    if (
+      typeof doc.filename !== 'string' ||
+      doc.filename !== path.basename(doc.filename) ||
+      doc.filename.includes('/') ||
+      doc.filename.includes('\\')
+    ) {
+      return NextResponse.json({ error: 'Invalid filename' }, { status: 400 })
+    }
+    
     const filepath = path.join(UPLOAD_DIR, doc.filename)
 
     try {

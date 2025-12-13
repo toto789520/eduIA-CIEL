@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Upload, Trash2, FileText, Download } from 'lucide-react'
+import { Upload, Trash2, FileText } from 'lucide-react'
 import axios from 'axios'
 
 interface Document {
