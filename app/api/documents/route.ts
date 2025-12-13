@@ -140,9 +140,7 @@ export async function DELETE(request: NextRequest) {
     // Validate filename to prevent path traversal
     if (
       typeof doc.filename !== 'string' ||
-      doc.filename !== path.basename(doc.filename) ||
-      doc.filename.includes('/') ||
-      doc.filename.includes('\\')
+      doc.filename !== path.basename(doc.filename)
     ) {
       return NextResponse.json({ error: 'Invalid filename' }, { status: 400 })
     }
