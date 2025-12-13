@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, FileText, MessageSquare, BookOpen, Terminal, Trophy, User, LogOut } from 'lucide-react'
+import { Home, FileText, MessageSquare, BookOpen, Terminal, Trophy, User, LogOut, Book, Settings } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 
@@ -49,10 +49,12 @@ export default function Sidebar() {
   const navItems = [
     { href: '/', label: 'Accueil', icon: Home },
     { href: '/documents', label: 'Documents', icon: FileText },
+    { href: '/docs', label: 'Documentation', icon: Book },
     { href: '/chat', label: 'Chat IA', icon: MessageSquare },
     { href: '/quiz', label: 'Quiz', icon: BookOpen },
     { href: '/evaluation', label: 'Évaluation', icon: Terminal },
     { href: '/leaderboard', label: 'Classement', icon: Trophy },
+    { href: '/settings', label: 'Paramètres', icon: Settings },
   ]
 
   return (

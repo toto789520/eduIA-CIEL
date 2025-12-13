@@ -206,6 +206,23 @@ export default function EvaluationPage() {
     const totalPoints = session.exercises.reduce((sum, ex) => sum + ex.points, 0)
     const percentage = Math.round((session.score / totalPoints) * 100)
 
+    // Submit score to leaderboard if user is logged in
+    const submitScore = async () => {
+      try {
+        await axios.post('/api/leaderboard', {
+          category: 'Général',
+          score: session.score
+        })
+      } catch (error) {
+        console.error('Failed to submit score:', error)
+      }
+    }
+
+    // Submit score once when evaluation completes
+    if (session.score > 0) {
+      submitScore()
+    }
+
     return (
       <div className="min-h-screen bg-gray-50 p-8">
         <div className="max-w-4xl mx-auto">

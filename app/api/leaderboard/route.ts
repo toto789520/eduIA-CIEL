@@ -132,6 +132,32 @@ export async function POST(request: NextRequest) {
       .sort((a, b) => b.totalScore - a.totalScore)
       .findIndex(u => u.id === userId) + 1
 
+    const totalScore = users[userIndex].scores
+      .filter(s => s.category === category)
+      .reduce((sum, s) => sum + s.score, 0)
+
+    // Send email notification if rank changed
+    if (previousRank !== newRank && previousRank > 0) {
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'ranking_change',
+            userName: users[userIndex].name,
+            userEmail: users[userIndex].email,
+            category,
+            oldRank: previousRank,
+            newRank,
+            totalScore
+          })
+        })
+      } catch (error) {
+        console.error('Failed to send email notification:', error)
+        // Don't fail the request if email fails
+      }
+    }
+
     return NextResponse.json({
       message: 'Score added successfully',
       previousRank,
