@@ -3,6 +3,8 @@ import { readFile, writeFile } from 'fs/promises'
 import { existsSync } from 'fs'
 import path from 'path'
 import crypto from 'crypto'
+import { initializeDefaultAdmin } from '@/lib/init-admin'
+import { hashPassword } from '@/lib/password'
 
 const USERS_FILE = path.join(process.cwd(), 'users.json')
 
@@ -24,7 +26,13 @@ interface User {
 async function loadUsers(): Promise<User[]> {
   try {
     if (!existsSync(USERS_FILE)) {
-      return []
+      // Initialize default admin on first run
+      initializeDefaultAdmin()
+      // Verify the file was created
+      if (!existsSync(USERS_FILE)) {
+        console.error('Failed to initialize users file')
+        return []
+      }
     }
     const data = await readFile(USERS_FILE, 'utf-8')
     return JSON.parse(data)
@@ -35,13 +43,6 @@ async function loadUsers(): Promise<User[]> {
 
 async function saveUsers(users: User[]) {
   await writeFile(USERS_FILE, JSON.stringify(users, null, 2))
-}
-
-function hashPassword(password: string): string {
-  // Use SHA-256 with a salt derived from the email
-  // Note: For production, use bcrypt or similar
-  const salt = process.env.PASSWORD_SALT || 'eduIA-CIEL-default-salt-2024'
-  return crypto.createHash('sha256').update(password + salt).digest('hex')
 }
 
 export async function POST(request: NextRequest) {
