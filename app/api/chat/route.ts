@@ -24,19 +24,22 @@ async function loadDocuments() {
 
 async function chatWithOllama(messages: Message[], context: string) {
   try {
+    const ollamaUrl = process.env.OLLAMA_API_URL || 'http://localhost:11434'
+    const ollamaModel = process.env.OLLAMA_MODEL || 'llama2'
+
     // Prepare the system message with document context
     const systemMessage = context 
       ? `Tu es un assistant éducatif pour des étudiants en BTS CIEL (Cybersécurité, Informatique et réseaux, Électronique). Voici le contenu des documents disponibles:\n\n${context}\n\nRéponds de manière professionnelle et pédagogique aux questions en te basant sur ces documents.`
       : `Tu es un assistant éducatif pour des étudiants en BTS CIEL (Cybersécurité, Informatique et réseaux, Électronique). Réponds de manière professionnelle et pédagogique aux questions.`
 
     // Try to connect to Ollama
-    const response = await fetch('http://localhost:11434/api/chat', {
+    const response = await fetch(`${ollamaUrl}/api/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama2', // Default model, can be changed
+        model: ollamaModel,
         messages: [
           { role: 'system', content: systemMessage },
           ...messages
