@@ -15,6 +15,7 @@ interface Exercise {
 }
 
 interface EvaluationSession {
+  id?: string
   exercises: Exercise[]
   currentExercise: number
   score: number
@@ -31,6 +32,7 @@ export default function EvaluationPage() {
   const [loading, setLoading] = useState(false)
   const [feedback, setFeedback] = useState('')
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null)
+  const [scoreSubmitted, setScoreSubmitted] = useState(false)
   const terminalRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -68,10 +70,10 @@ export default function EvaluationPage() {
     try {
       const response = await axios.post('/api/evaluation/start')
       const sessionData = {
-        ...response.data,
-        startTime: Date.now()
+        ...response.data
       }
       setSession(sessionData)
+      setScoreSubmitted(false)
       if (sessionData.timeLimit) {
         setTimeRemaining(sessionData.timeLimit)
       }
@@ -206,8 +208,10 @@ export default function EvaluationPage() {
     const totalPoints = session.exercises.reduce((sum, ex) => sum + ex.points, 0)
     const percentage = Math.round((session.score / totalPoints) * 100)
 
-    // Submit score to leaderboard if user is logged in
+    // Submit score to leaderboard if user is logged in (only once)
     const submitScore = async () => {
+      if (scoreSubmitted || session.score === 0) return
+      
       try {
         // Determine category based on exercise types
         const hasTerminal = session.exercises.some(ex => ex.type === 'terminal')
@@ -218,13 +222,14 @@ export default function EvaluationPage() {
           category,
           score: session.score
         })
+        setScoreSubmitted(true)
       } catch (error) {
         console.error('Failed to submit score:', error)
       }
     }
 
     // Submit score once when evaluation completes
-    if (session.score > 0) {
+    if (!scoreSubmitted && session.score > 0) {
       submitScore()
     }
 

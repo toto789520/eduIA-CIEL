@@ -69,7 +69,6 @@ export async function GET(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const response = NextResponse.json({ message: 'Logged out successfully' })
   
-  response.cookies.delete('session')
   response.cookies.delete('userId')
   
   return response

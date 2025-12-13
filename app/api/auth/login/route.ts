@@ -75,9 +75,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create session token
-    const sessionToken = crypto.randomUUID()
-
     // Return user without password
     const { password: _, ...userWithoutPassword } = user
 
@@ -86,14 +83,7 @@ export async function POST(request: NextRequest) {
       message: 'Login successful'
     })
 
-    // Set session cookie
-    response.cookies.set('session', sessionToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7 // 7 days
-    })
-
+    // Set userId cookie for authentication
     response.cookies.set('userId', user.id, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

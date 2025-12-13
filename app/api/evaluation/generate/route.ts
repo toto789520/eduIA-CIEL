@@ -28,6 +28,31 @@ async function generateEvaluationWithOllama(codeContent: string) {
       if (!['http:', 'https:'].includes(url.protocol)) {
         throw new Error('Invalid protocol')
       }
+      
+      // Block private IP ranges to prevent SSRF attacks
+      const hostname = url.hostname.toLowerCase()
+      
+      // Block localhost variations
+      if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+        // Allow localhost only if explicitly configured
+        if (ollamaUrl !== process.env.OLLAMA_API_URL) {
+          throw new Error('Localhost not allowed')
+        }
+      }
+      
+      // Block private IP ranges
+      const privateIPRegex = /^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.)/
+      if (privateIPRegex.test(hostname)) {
+        // Allow private IPs only if explicitly configured
+        if (ollamaUrl !== process.env.OLLAMA_API_URL) {
+          throw new Error('Private IP addresses not allowed')
+        }
+      }
+      
+      // Block metadata service IPs
+      if (hostname === '169.254.169.254' || hostname.startsWith('fd00:')) {
+        throw new Error('Metadata service access not allowed')
+      }
     } catch (error) {
       console.error('Invalid OLLAMA_API_URL:', ollamaUrl)
       throw new Error('Invalid Ollama API URL configuration')

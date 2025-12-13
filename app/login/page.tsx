@@ -21,7 +21,7 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const response = await axios.post('/api/auth/login', formData)
+      await axios.post('/api/auth/login', formData)
       router.push('/')
       router.refresh()
     } catch (err: any) {

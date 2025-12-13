@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, readFile, unlink } from 'fs/promises'
+import { writeFile, readFile } from 'fs/promises'
 import { existsSync, mkdirSync } from 'fs'
 import path from 'path'
 import crypto from 'crypto'
@@ -83,10 +83,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Only authenticated users can create private docs
-    if (!isPublic && !userId) {
+    // Authentication required for all document creation
+    if (!userId) {
       return NextResponse.json(
-        { error: 'Must be logged in to create private documents' },
+        { error: 'Must be logged in to create documents' },
         { status: 401 }
       )
     }
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
       content,
       category,
       isPublic: isPublic === true,
-      userId: !isPublic ? userId : undefined,
+      userId: userId, // Always store creator
       createdAt: Date.now(),
       updatedAt: Date.now()
     }
@@ -119,6 +119,13 @@ export async function PUT(request: NextRequest) {
     const userId = request.cookies.get('userId')?.value
     const { id, title, content, category } = await request.json()
 
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
     if (!id || !title || !content || !category) {
       return NextResponse.json(
         { error: 'ID, title, content, and category are required' },
@@ -135,8 +142,8 @@ export async function PUT(request: NextRequest) {
 
     const doc = docs[docIndex]
 
-    // Check permissions
-    if (!doc.isPublic && doc.userId !== userId) {
+    // Check permissions - must be owner
+    if (doc.userId !== userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
@@ -163,6 +170,13 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
     if (!id) {
       return NextResponse.json({ error: 'ID required' }, { status: 400 })
     }
@@ -176,8 +190,8 @@ export async function DELETE(request: NextRequest) {
 
     const doc = docs[docIndex]
 
-    // Check permissions
-    if (!doc.isPublic && doc.userId !== userId) {
+    // Check permissions - must be owner
+    if (doc.userId !== userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 

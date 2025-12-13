@@ -1,4 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { writeFile, readFile } from 'fs/promises'
+import { existsSync } from 'fs'
+import path from 'path'
+import crypto from 'crypto'
+
+const SESSIONS_FILE = path.join(process.cwd(), 'evaluation-sessions.json')
+
+interface EvaluationSession {
+  id: string
+  userId: string
+  exercises: Exercise[]
+  currentExercise: number
+  score: number
+  completed: boolean
+  timeLimit: number
+  startTime: number
+}
 
 interface Exercise {
   id: string
@@ -8,6 +25,22 @@ interface Exercise {
   task: string
   validation: string
   points: number
+}
+
+async function loadSessions(): Promise<EvaluationSession[]> {
+  try {
+    if (!existsSync(SESSIONS_FILE)) {
+      return []
+    }
+    const data = await readFile(SESSIONS_FILE, 'utf-8')
+    return JSON.parse(data)
+  } catch (error) {
+    return []
+  }
+}
+
+async function saveSessions(sessions: EvaluationSession[]) {
+  await writeFile(SESSIONS_FILE, JSON.stringify(sessions, null, 2))
 }
 
 const exercises: Exercise[] = [
@@ -60,13 +93,42 @@ const exercises: Exercise[] = [
 
 export async function POST(request: NextRequest) {
   try {
-    return NextResponse.json({
+    const userId = request.cookies.get('userId')?.value
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
+    const sessionId = crypto.randomUUID()
+    const serverStartTime = Date.now()
+    
+    const session: EvaluationSession = {
+      id: sessionId,
+      userId,
       exercises: exercises,
       currentExercise: 0,
       score: 0,
       completed: false,
       timeLimit: 1800, // 30 minutes in seconds
-      startTime: Date.now()
+      startTime: serverStartTime
+    }
+
+    // Save session to server
+    const sessions = await loadSessions()
+    sessions.push(session)
+    await saveSessions(sessions)
+
+    return NextResponse.json({
+      id: sessionId,
+      exercises: exercises,
+      currentExercise: 0,
+      score: 0,
+      completed: false,
+      timeLimit: 1800,
+      startTime: serverStartTime
     })
   } catch (error) {
     return NextResponse.json(

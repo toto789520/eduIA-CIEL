@@ -97,44 +97,6 @@ eduIA-CIEL est une plateforme éducative interactive pour les étudiants en BTS 
 - **Supprimer**: Cliquez sur l'icône corbeille (uniquement vos documents)
 - **Filtrer**: Utilisez les onglets pour organiser l'affichage
 
-
-## 2. Documentation (Public/Privé)
-
-### Créer un Document
-
-1. Allez dans **"Documentation"**
-2. Cliquez sur **"Nouveau Document"**
-3. Remplissez:
-   - **Titre**: Nom du document
-   - **Catégorie**: Réseaux, Cybersécurité, etc.
-   - **Visibilité**: 
-     - 🌐 **Public**: Visible par toute la classe
-     - 🔒 **Privé**: Visible uniquement par vous
-   - **Contenu**: Le texte du document
-4. Cliquez sur **"Créer"**
-
-### Consulter les Documents
-
-- **Onglet "Tous"**: Documents publics + vos documents privés
-- **Onglet "Public"**: Uniquement les documents de la classe
-- **Onglet "Privé"**: Uniquement vos documents personnels
-
-### Mode Chat Côte-à-Côte
-
-1. Cliquez sur un document pour le sélectionner
-2. Cliquez sur **"Afficher Chat"**
-3. Le chat IA apparaît à droite
-4. Posez des questions sur le document:
-   - "Explique ce concept"
-   - "Donne-moi un résumé"
-   - "Quels sont les points clés?"
-5. Le chat utilise le contenu du document pour répondre
-
-### Gérer les Documents
-
-- **Supprimer**: Cliquez sur l'icône corbeille (uniquement vos documents)
-- **Filtrer**: Utilisez les onglets pour organiser l'affichage
-
 ## 3. Chat IA
 
 ### Démarrer une Conversation

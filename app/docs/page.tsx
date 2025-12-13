@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
-import { FileText, Plus, Lock, Globe, Edit2, Trash2, MessageSquare, Send } from 'lucide-react'
+import { FileText, Plus, Lock, Globe, Trash2, MessageSquare, Send } from 'lucide-react'
 
 interface Doc {
   id: string
