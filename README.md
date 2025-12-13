@@ -120,14 +120,24 @@ eduIA-CIEL/
 
 ## Configuration d'Ollama
 
-Par défaut, l'application utilise le modèle `llama2`. Vous pouvez utiliser d'autres modèles :
+Par défaut, l'application utilise le modèle `llama2` et se connecte à `http://localhost:11434`. Vous pouvez personnaliser cela en créant un fichier `.env.local` :
+
+```env
+# URL de l'API Ollama
+OLLAMA_API_URL=http://localhost:11434
+
+# Modèle Ollama à utiliser
+OLLAMA_MODEL=llama2
+```
+
+Vous pouvez utiliser d'autres modèles disponibles :
 
 ```bash
 # Télécharger d'autres modèles
 ollama pull mistral
 ollama pull codellama
 
-# Modifier le modèle dans app/api/chat/route.ts
+# Puis modifier OLLAMA_MODEL dans .env.local
 ```
 
 ## Développement

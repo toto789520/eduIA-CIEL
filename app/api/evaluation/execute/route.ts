@@ -24,8 +24,58 @@ drwxr-xr-x  2 user user 4096 Dec 13 10:30 projet`,
   }
 }
 
+function normalizeCommand(command: string): string {
+  // Remove extra spaces and normalize
+  return command.trim().replace(/\s+/g, ' ')
+}
+
+function checkCommandMatch(userCommand: string, expectedCommand: string): boolean {
+  const normalized = normalizeCommand(userCommand.toLowerCase())
+  
+  // Split command into parts
+  const parts = normalized.split(' ')
+  const cmd = parts[0]
+  
+  // Special handling for ls command with -l and -a flags
+  if (cmd === 'ls' && expectedCommand.toLowerCase().includes('ls')) {
+    // Check if the expected command requires both -l and -a flags
+    const expectedHasL = /-[a-z]*l[a-z]*/.test(expectedCommand.toLowerCase())
+    const expectedHasA = /-[a-z]*a[a-z]*/.test(expectedCommand.toLowerCase())
+    
+    if (expectedHasL && expectedHasA) {
+      // Check for -l flag in user command (as separate or in combined form like -la, -al, -lah, etc.)
+      const hasL = /-[a-z]*l[a-z]*/.test(normalized)
+      // Check for -a flag in user command (as separate or in combined form)
+      const hasA = /-[a-z]*a[a-z]*/.test(normalized)
+      
+      return hasL && hasA
+    }
+  }
+  
+  // For mkdir, check if the command matches (e.g., "mkdir projet")
+  if (cmd === 'mkdir' && expectedCommand.toLowerCase().includes('mkdir')) {
+    // Extract the expected directory name
+    const expectedParts = expectedCommand.toLowerCase().split(/\s+/)
+    if (expectedParts.length > 1) {
+      // If there's a specific directory expected, check for it exactly
+      const expectedDir = expectedParts[1]
+      return parts.length === 2 && parts[1] === expectedDir
+    }
+    // If no specific directory, just check that mkdir is used
+    return true
+  }
+  
+  // For chmod, check if it starts with chmod
+  if (cmd === 'chmod' && expectedCommand.toLowerCase().includes('chmod')) {
+    return true
+  }
+  
+  // Default: check if command includes validation
+  return normalized.includes(expectedCommand.toLowerCase())
+}
+
 function simulateCommand(command: string, exerciseId: string): any {
-  const cleanCommand = command.trim().toLowerCase()
+  const cleanCommand = command.trim()
   const validation = commandValidations[exerciseId]
   
   if (!validation) {
@@ -36,19 +86,21 @@ function simulateCommand(command: string, exerciseId: string): any {
   }
 
   // Common commands simulation
-  if (cleanCommand === 'pwd') {
+  const lowerCommand = cleanCommand.toLowerCase()
+  
+  if (lowerCommand === 'pwd') {
     return { output: '/home/user', correct: false }
   }
   
-  if (cleanCommand === 'whoami') {
+  if (lowerCommand === 'whoami') {
     return { output: 'user', correct: false }
   }
   
-  if (cleanCommand.startsWith('echo ')) {
+  if (lowerCommand.startsWith('echo ')) {
     return { output: cleanCommand.substring(5), correct: false }
   }
 
-  if (cleanCommand === 'help') {
+  if (lowerCommand === 'help') {
     return { 
       output: 'Commandes disponibles: ls, pwd, whoami, mkdir, cd, chmod, echo, help',
       correct: false 
@@ -56,7 +108,7 @@ function simulateCommand(command: string, exerciseId: string): any {
   }
 
   // Check if command matches validation
-  if (cleanCommand.includes(validation.validation.toLowerCase())) {
+  if (checkCommandMatch(cleanCommand, validation.validation)) {
     return {
       output: validation.output,
       correct: true

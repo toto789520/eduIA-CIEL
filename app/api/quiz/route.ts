@@ -19,6 +19,20 @@ async function loadDocuments() {
 
 async function generateQuizWithOllama(context: string) {
   try {
+    const ollamaUrl = process.env.OLLAMA_API_URL || 'http://localhost:11434'
+    const ollamaModel = process.env.OLLAMA_MODEL || 'llama2'
+
+    // Validate Ollama URL to prevent SSRF
+    try {
+      const url = new URL(ollamaUrl)
+      if (!['http:', 'https:'].includes(url.protocol)) {
+        throw new Error('Invalid protocol')
+      }
+    } catch (error) {
+      console.error('Invalid OLLAMA_API_URL:', ollamaUrl)
+      throw new Error('Invalid Ollama API URL configuration')
+    }
+
     const prompt = `À partir du contenu suivant, génère un quiz de 5 questions à choix multiples pour tester les connaissances. Format JSON exact:
 
 {
@@ -38,13 +52,13 @@ ${context}
 
 Génère UNIQUEMENT le JSON, sans texte avant ou après.`
 
-    const response = await fetch('http://localhost:11434/api/generate', {
+    const response = await fetch(`${ollamaUrl}/api/generate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama2',
+        model: ollamaModel,
         prompt: prompt,
         stream: false,
         format: 'json'
