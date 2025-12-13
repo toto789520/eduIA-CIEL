@@ -39,14 +39,14 @@ function checkCommandMatch(userCommand: string, expectedCommand: string): boolea
   // Special handling for ls command with -l and -a flags
   if (cmd === 'ls' && expectedCommand.toLowerCase().includes('ls')) {
     // Check if the expected command requires both -l and -a flags
-    const expectedHasL = /-[a-z]*l/.test(expectedCommand.toLowerCase())
-    const expectedHasA = /-[a-z]*a/.test(expectedCommand.toLowerCase())
+    const expectedHasL = /-[a-z]*l[a-z]*/.test(expectedCommand.toLowerCase())
+    const expectedHasA = /-[a-z]*a[a-z]*/.test(expectedCommand.toLowerCase())
     
     if (expectedHasL && expectedHasA) {
       // Check for -l flag in user command (as separate or in combined form like -la, -al, -lah, etc.)
-      const hasL = /-[a-z]*l/.test(normalized)
+      const hasL = /-[a-z]*l[a-z]*/.test(normalized)
       // Check for -a flag in user command (as separate or in combined form)
-      const hasA = /-[a-z]*a/.test(normalized)
+      const hasA = /-[a-z]*a[a-z]*/.test(normalized)
       
       return hasL && hasA
     }
