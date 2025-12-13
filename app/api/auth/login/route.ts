@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { readFile } from 'fs/promises'
 import { existsSync } from 'fs'
 import path from 'path'
-import crypto from 'crypto'
+import { hashPassword } from '@/lib/password'
 
 const USERS_FILE = path.join(process.cwd(), 'users.json')
 
@@ -31,13 +31,6 @@ async function loadUsers(): Promise<User[]> {
   } catch (error) {
     return []
   }
-}
-
-function hashPassword(password: string): string {
-  // Use SHA-256 with a salt derived from the email
-  // Note: For production, use bcrypt or similar
-  const salt = process.env.PASSWORD_SALT || 'eduIA-CIEL-default-salt-2024'
-  return crypto.createHash('sha256').update(password + salt).digest('hex')
 }
 
 export async function POST(request: NextRequest) {

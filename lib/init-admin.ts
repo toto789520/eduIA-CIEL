@@ -1,6 +1,7 @@
 import { writeFileSync, existsSync, readFileSync } from 'fs'
 import { join } from 'path'
 import crypto from 'crypto'
+import { hashPassword } from './password'
 
 const USERS_FILE = join(process.cwd(), 'users.json')
 
@@ -17,11 +18,6 @@ interface User {
     score: number
     date: number
   }[]
-}
-
-function hashPassword(password: string): string {
-  const salt = process.env.PASSWORD_SALT || 'eduIA-CIEL-default-salt-2024'
-  return crypto.createHash('sha256').update(password + salt).digest('hex')
 }
 
 export function initializeDefaultAdmin(): void {
@@ -60,7 +56,9 @@ export function initializeDefaultAdmin(): void {
     
     console.log('✅ Default admin account created')
     console.log('   Email: admin@eduia-ciel.local')
-    console.log('   Password: admin123')
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('   Password: admin123')
+    }
     console.log('   ⚠️  Please change the password after first login!')
   } catch (error) {
     console.error('❌ Failed to initialize default admin:', error)
