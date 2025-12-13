@@ -23,6 +23,22 @@ npm run dev
 
 L'application sera disponible sur http://localhost:3000
 
+### 3. Compte Administrateur
+
+Au premier démarrage, un compte administrateur est automatiquement créé :
+- **Email**: `admin@eduia-ciel.local`
+- **Mot de passe**: `admin123`
+
+⚠️ **IMPORTANT**: Changez ce mot de passe immédiatement après la première connexion !
+
+**Configuration requise** : Ajoutez l'email administrateur dans un fichier `.env.local` à la racine du projet :
+
+```env
+ADMIN_EMAILS=admin@eduia-ciel.local
+```
+
+Sans cette configuration, le compte admin ne pourra pas valider d'autres utilisateurs.
+
 ## Configuration d'Ollama
 
 ### Installation d'Ollama

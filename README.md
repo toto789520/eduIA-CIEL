@@ -146,6 +146,19 @@ eduIA-CIEL/
 
 ## Utilisation
 
+### Compte Administrateur par Défaut
+
+Au premier démarrage, un compte administrateur est automatiquement créé :
+- **Email**: `admin@eduia-ciel.local`
+- **Mot de passe**: `admin123`
+
+⚠️ **IMPORTANT**: Changez ce mot de passe après la première connexion !
+
+Pour activer les privilèges administrateur, ajoutez l'email dans votre fichier `.env.local` :
+```env
+ADMIN_EMAILS=admin@eduia-ciel.local
+```
+
 ### 1. Créer un Compte
 - Accédez à "S'inscrire"
 - Remplissez vos informations

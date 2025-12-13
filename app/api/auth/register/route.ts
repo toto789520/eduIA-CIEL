@@ -3,6 +3,7 @@ import { readFile, writeFile } from 'fs/promises'
 import { existsSync } from 'fs'
 import path from 'path'
 import crypto from 'crypto'
+import { initializeDefaultAdmin } from '@/lib/init-admin'
 
 const USERS_FILE = path.join(process.cwd(), 'users.json')
 
@@ -24,7 +25,8 @@ interface User {
 async function loadUsers(): Promise<User[]> {
   try {
     if (!existsSync(USERS_FILE)) {
-      return []
+      // Initialize default admin on first run
+      initializeDefaultAdmin()
     }
     const data = await readFile(USERS_FILE, 'utf-8')
     return JSON.parse(data)
