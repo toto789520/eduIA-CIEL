@@ -15,10 +15,13 @@ interface Exercise {
 }
 
 interface EvaluationSession {
+  id?: string
   exercises: Exercise[]
   currentExercise: number
   score: number
   completed: boolean
+  timeLimit?: number // in seconds
+  startTime?: number // timestamp
 }
 
 export default function EvaluationPage() {
@@ -28,6 +31,8 @@ export default function EvaluationPage() {
   const [codeInput, setCodeInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [feedback, setFeedback] = useState('')
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null)
+  const [scoreSubmitted, setScoreSubmitted] = useState(false)
   const terminalRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -36,11 +41,42 @@ export default function EvaluationPage() {
     }
   }, [terminalOutput])
 
+  // Timer effect
+  useEffect(() => {
+    if (session && session.timeLimit && session.startTime && !session.completed) {
+      const interval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - session.startTime!) / 1000)
+        const remaining = session.timeLimit! - elapsed
+        
+        if (remaining <= 0) {
+          setTimeRemaining(0)
+          // Auto-complete evaluation when time runs out
+          setSession({
+            ...session,
+            completed: true
+          })
+          clearInterval(interval)
+        } else {
+          setTimeRemaining(remaining)
+        }
+      }, 1000)
+
+      return () => clearInterval(interval)
+    }
+  }, [session])
+
   const startEvaluation = async () => {
     setLoading(true)
     try {
       const response = await axios.post('/api/evaluation/start')
-      setSession(response.data)
+      const sessionData = {
+        ...response.data
+      }
+      setSession(sessionData)
+      setScoreSubmitted(false)
+      if (sessionData.timeLimit) {
+        setTimeRemaining(sessionData.timeLimit)
+      }
       setTerminalOutput(['Bienvenue dans l\'évaluation interactive BTS CIEL!', ''])
     } catch (error) {
       console.error('Error starting evaluation:', error)
@@ -172,6 +208,31 @@ export default function EvaluationPage() {
     const totalPoints = session.exercises.reduce((sum, ex) => sum + ex.points, 0)
     const percentage = Math.round((session.score / totalPoints) * 100)
 
+    // Submit score to leaderboard if user is logged in (only once)
+    const submitScore = async () => {
+      if (scoreSubmitted || session.score === 0) return
+      
+      try {
+        // Determine category based on exercise types
+        const hasTerminal = session.exercises.some(ex => ex.type === 'terminal')
+        const hasCode = session.exercises.some(ex => ex.type === 'code')
+        const category = hasTerminal && hasCode ? 'Général' : hasTerminal ? 'Systèmes Linux' : 'Programmation'
+        
+        await axios.post('/api/leaderboard', {
+          category,
+          score: session.score
+        })
+        setScoreSubmitted(true)
+      } catch (error) {
+        console.error('Failed to submit score:', error)
+      }
+    }
+
+    // Submit score once when evaluation completes
+    if (!scoreSubmitted && session.score > 0) {
+      submitScore()
+    }
+
     return (
       <div className="min-h-screen bg-gray-50 p-8">
         <div className="max-w-4xl mx-auto">
@@ -219,10 +280,20 @@ export default function EvaluationPage() {
               Score: {session.score} points
             </p>
           </div>
-          <div className="text-right">
-            <div className="text-sm text-gray-600">Points</div>
-            <div className="text-2xl font-bold text-blue-600">
-              {currentExercise?.points}
+          <div className="flex items-center space-x-4">
+            {timeRemaining !== null && (
+              <div className="text-right">
+                <div className="text-sm text-gray-600">Temps restant</div>
+                <div className={`text-2xl font-bold ${timeRemaining < 60 ? 'text-red-600' : 'text-blue-600'}`}>
+                  {Math.floor(timeRemaining / 60)}:{String(timeRemaining % 60).padStart(2, '0')}
+                </div>
+              </div>
+            )}
+            <div className="text-right">
+              <div className="text-sm text-gray-600">Points</div>
+              <div className="text-2xl font-bold text-blue-600">
+                {currentExercise?.points}
+              </div>
             </div>
           </div>
         </div>
