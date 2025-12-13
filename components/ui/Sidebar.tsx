@@ -2,10 +2,45 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, FileText, MessageSquare, BookOpen, Terminal } from 'lucide-react'
+import { Home, FileText, MessageSquare, BookOpen, Terminal, Trophy, User, LogOut } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import axios from 'axios'
+
+interface UserInfo {
+  id: string
+  name: string
+  email: string
+  category: string
+  validated: boolean
+}
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const [user, setUser] = useState<UserInfo | null>(null)
+
+  useEffect(() => {
+    loadUser()
+  }, [])
+
+  const loadUser = async () => {
+    try {
+      const response = await axios.get('/api/auth/session')
+      setUser(response.data.user)
+    } catch (error) {
+      // User not logged in
+      setUser(null)
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      await axios.delete('/api/auth/session')
+      setUser(null)
+      window.location.href = '/login'
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
+  }
 
   const isActive = (path: string) => {
     return pathname === path || pathname.startsWith(path + '/')
@@ -17,6 +52,7 @@ export default function Sidebar() {
     { href: '/chat', label: 'Chat IA', icon: MessageSquare },
     { href: '/quiz', label: 'Quiz', icon: BookOpen },
     { href: '/evaluation', label: 'Évaluation', icon: Terminal },
+    { href: '/leaderboard', label: 'Classement', icon: Trophy },
   ]
 
   return (
@@ -48,6 +84,41 @@ export default function Sidebar() {
           })}
         </ul>
       </nav>
+
+      {user ? (
+        <div className="p-4 border-t border-gray-800">
+          <div className="mb-3">
+            <div className="flex items-center space-x-2 mb-2">
+              <User className="w-4 h-4 text-gray-400" />
+              <span className="text-sm font-medium">{user.name}</span>
+            </div>
+            <div className="text-xs text-gray-500">{user.category}</div>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center space-x-2 px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-sm"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Déconnexion</span>
+          </button>
+        </div>
+      ) : (
+        <div className="p-4 border-t border-gray-800">
+          <Link
+            href="/login"
+            className="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors text-sm font-medium"
+          >
+            <User className="w-4 h-4" />
+            <span>Se connecter</span>
+          </Link>
+          <Link
+            href="/register"
+            className="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-sm"
+          >
+            <span>S'inscrire</span>
+          </Link>
+        </div>
+      )}
 
       <div className="p-4 border-t border-gray-800">
         <div className="text-xs text-gray-500">

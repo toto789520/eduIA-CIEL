@@ -64,7 +64,9 @@ export async function POST(request: NextRequest) {
       exercises: exercises,
       currentExercise: 0,
       score: 0,
-      completed: false
+      completed: false,
+      timeLimit: 1800, // 30 minutes in seconds
+      startTime: Date.now()
     })
   } catch (error) {
     return NextResponse.json(

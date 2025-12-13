@@ -19,6 +19,8 @@ interface EvaluationSession {
   currentExercise: number
   score: number
   completed: boolean
+  timeLimit?: number // in seconds
+  startTime?: number // timestamp
 }
 
 export default function EvaluationPage() {
@@ -28,6 +30,7 @@ export default function EvaluationPage() {
   const [codeInput, setCodeInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [feedback, setFeedback] = useState('')
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null)
   const terminalRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -36,11 +39,42 @@ export default function EvaluationPage() {
     }
   }, [terminalOutput])
 
+  // Timer effect
+  useEffect(() => {
+    if (session && session.timeLimit && session.startTime && !session.completed) {
+      const interval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - session.startTime!) / 1000)
+        const remaining = session.timeLimit! - elapsed
+        
+        if (remaining <= 0) {
+          setTimeRemaining(0)
+          // Auto-complete evaluation when time runs out
+          setSession({
+            ...session,
+            completed: true
+          })
+          clearInterval(interval)
+        } else {
+          setTimeRemaining(remaining)
+        }
+      }, 1000)
+
+      return () => clearInterval(interval)
+    }
+  }, [session])
+
   const startEvaluation = async () => {
     setLoading(true)
     try {
       const response = await axios.post('/api/evaluation/start')
-      setSession(response.data)
+      const sessionData = {
+        ...response.data,
+        startTime: Date.now()
+      }
+      setSession(sessionData)
+      if (sessionData.timeLimit) {
+        setTimeRemaining(sessionData.timeLimit)
+      }
       setTerminalOutput(['Bienvenue dans l\'évaluation interactive BTS CIEL!', ''])
     } catch (error) {
       console.error('Error starting evaluation:', error)
@@ -219,10 +253,20 @@ export default function EvaluationPage() {
               Score: {session.score} points
             </p>
           </div>
-          <div className="text-right">
-            <div className="text-sm text-gray-600">Points</div>
-            <div className="text-2xl font-bold text-blue-600">
-              {currentExercise?.points}
+          <div className="flex items-center space-x-4">
+            {timeRemaining !== null && (
+              <div className="text-right">
+                <div className="text-sm text-gray-600">Temps restant</div>
+                <div className={`text-2xl font-bold ${timeRemaining < 60 ? 'text-red-600' : 'text-blue-600'}`}>
+                  {Math.floor(timeRemaining / 60)}:{String(timeRemaining % 60).padStart(2, '0')}
+                </div>
+              </div>
+            )}
+            <div className="text-right">
+              <div className="text-sm text-gray-600">Points</div>
+              <div className="text-2xl font-bold text-blue-600">
+                {currentExercise?.points}
+              </div>
             </div>
           </div>
         </div>
