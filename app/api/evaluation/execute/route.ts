@@ -52,9 +52,17 @@ function checkCommandMatch(userCommand: string, expectedCommand: string): boolea
     }
   }
   
-  // For mkdir, just check if it contains the expected command
+  // For mkdir, check if the command matches (e.g., "mkdir projet")
   if (cmd === 'mkdir' && expectedCommand.toLowerCase().includes('mkdir')) {
-    return normalized.includes(expectedCommand.toLowerCase())
+    // Extract the expected directory name
+    const expectedParts = expectedCommand.toLowerCase().split(/\s+/)
+    if (expectedParts.length > 1) {
+      // If there's a specific directory expected, check for it exactly
+      const expectedDir = expectedParts[1]
+      return parts.length === 2 && parts[1] === expectedDir
+    }
+    // If no specific directory, just check that mkdir is used
+    return true
   }
   
   // For chmod, check if it starts with chmod
